@@ -88,8 +88,8 @@ class Matrix {
 	 */
 	static double[][] transpose(double[][] matrix) {
 		double[][] out = new double[matrix[0].length][matrix.length];
-		for(int i = 0; i < matrix.length; i++) {
-			for(int j = 0; j < matrix[0].length; j++) {
+		for(int i = 0; i < out.length; i++) {
+			for(int j = 0; j < out[0].length; j++) {
 				out[i][j] = matrix[j][i];
 			}
 		}
@@ -181,7 +181,7 @@ class Matrix {
 		}
 		double[][] out = new double[b.length][a[0].length];
 		for(int i = 0; i < out.length; i++) {
-			for(int j = 0; j < out.length; j++) {
+			for(int j = 0; j < out[0].length; j++) {
 				double[] row = getRow(a, j);
 				double[] column = getColumn(b, i);
 				out[i][j] = dot(row, column);

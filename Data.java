@@ -11,7 +11,12 @@ class Data {
 	 * @param vals	data for new Data object; dimensions as columns, data points as rows.
 	 */
 	Data(double[][] vals) {
-		matrix = vals;
+		matrix = new double[vals.length][vals[0].length];
+		for(int i = 0; i < vals.length; i++) {
+			for(int j = 0; j < vals[0].length; j++) {
+				matrix[i][j] = vals[i][j];
+			}
+		}
 	}
 	
 	/**
@@ -35,6 +40,25 @@ class Data {
 		Matrix.print(eigen.vectors);
 		System.out.println("Two principal components:");
 		Matrix.print(dat.buildPrincipalComponents(2, eigen));
+		System.out.println("Principal component transformation:");
+		Matrix.print(Data.principalComponentAnalysis(data, 2));
+	}
+	
+	/**
+	 * Performs principal component analysis with a specified number of principal components.
+	 * @param input			input data; each double[] in input is an array of values of a single
+	 * 						variable for each data point
+	 * @param numComponents	number of components desired
+	 * @return				the transformed data set
+	 */
+	static double[][] principalComponentAnalysis(double[][] input, int numComponents) {
+		Data data = new Data(input);
+		data.normalize();
+		EigenSet eigen = data.getCovarianceEigenSet();
+		double[][] featureVector = data.buildPrincipalComponents(numComponents, eigen);
+		double[][] PC = Matrix.transpose(featureVector);
+		double[][] inputTranspose = Matrix.transpose(input);
+		return Matrix.transpose(Matrix.multiply(PC, inputTranspose));
 	}
 	
 	/**
