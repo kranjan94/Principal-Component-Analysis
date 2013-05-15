@@ -1,5 +1,6 @@
 /**
- * Holds the information of a data set. Each row contains a single data point.
+ * Holds the information of a data set. Each row contains a single data point. Primary computations
+ * of PCA are performed by the Data object.
  * @author	Kushal Ranjan
  * @version	051313
  */
@@ -27,6 +28,8 @@ class Data {
 	public static void main(String[] args) {
 		double[][] data = {{4, 4.2, 3.9, 4.3, 4.1}, {2, 2.1, 2, 2.1, 2.2}, 
 				{0.6, 0.59, 0.58, 0.62, 0.63}};
+		System.out.println("Raw data:");
+		Matrix.print(data);
 		Data dat = new Data(data);
 		dat.normalize();
 		double[][] cov = dat.covarianceMatrix();
