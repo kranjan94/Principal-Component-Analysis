@@ -1,9 +1,24 @@
 /**
- * Class for performing matrix calculations.
+ * Class for performing matrix calculations specific to PCA.
  * @author	Kushal Ranjan
  * @version	051413
  */
-class MatrixMath {
+class Matrix {
+	
+	
+	
+	/**
+	 * Produces an array of the diagonal entries in the input matrix.
+	 * @param input	input matrix
+	 * @return		the entries on the diagonal of input
+	 */
+	static double[] extractDiagonalEntries(double[][] input) {
+		double[] out = new double[input.length];
+		for(int i = 0; i<input.length; i++) {
+			out[i] = input[i][i];
+		}
+		return out;
+	}
 	
 	/**
 	 * Performs a QR factorization on the input matrix.
@@ -13,7 +28,7 @@ class MatrixMath {
 	static double[][][] QRFactorize(double[][] input) {
 		double[][][] out = new double[2][][];
 		double[][] orthonorm = gramSchmidt(input);
-		out[0] = orthonorm;
+		out[0] = orthonorm; //Q is the matrix of the orthonormal vectors formed by GS on input
 		double[][] R = new double[orthonorm.length][orthonorm.length];
 		for(int i = 0; i < R.length; i++) {
 			for(int j = 0; j <= i; j++) {
@@ -37,7 +52,7 @@ class MatrixMath {
 				double[] sub = proj(v, out[j]);
 				v = subtract(v, sub); //Subtract off non-orthogonal components
 			}
-			out[outPos] = normalize(v);
+			out[outPos] = normalize(v); //return an orthonormal list
 		}
 		return out;
 	}
@@ -120,6 +135,23 @@ class MatrixMath {
 	}
 	
 	/**
+	 * Returns the sum of a and b.
+	 * @param a	double[] vector of values
+	 * @param b	double[] vector of values
+	 * @return	the vector sum a + b
+	 */
+	static double[] add(double[] a, double[] b) {
+		if(a.length != b.length) {
+			throw new MatrixException("Vectors are not same length.");
+		}
+		double[] out = new double[a.length];
+		for(int i = 0; i < out.length; i++) {
+			out[i] = a[i] + b[i];
+		}
+		return out;
+	}
+	
+	/**
 	 * Returns the difference of a and b.
 	 * @param a	double[] vector of values
 	 * @param b	double[] vector of values
@@ -188,7 +220,7 @@ class MatrixMath {
 	static double[] getRow(double[][] matrix, int i) {
 		double[] vals = new double[matrix.length];
 		for(int j = 0; j < vals.length; j++) {
-			vals[j] = matrix[i][j];
+			vals[j] = matrix[j][i];
 		}
 		return vals;
 	}
@@ -230,16 +262,20 @@ class MatrixMath {
 	}
 	
 	/**
-	 * Prints the input matrix with each value rounded to two decimal places.
+	 * Prints the input matrix with each value rounded to 4 significant figures
 	 */
 	static void print(double[][] matrix) {
 		for(int j = 0; j < matrix[0].length; j++) {
 			for(int i = 0; i < matrix.length; i++) {
-				double formattedValue = Double.parseDouble(String.format("%.3g%n", matrix[i][j]));
+				double formattedValue = Double.parseDouble(String.format("%.4g%n", matrix[i][j]));
+				if(Math.abs(formattedValue) < 0.00001) { //Hide negligible values
+					formattedValue = 0;
+				}
 				System.out.print(formattedValue + "\t");
 			}
 			System.out.print("\n");
 		}
+		System.out.println("");
 	}
 }
 
