@@ -12,7 +12,7 @@ To run, compile and execute:
 
     java PCA <filename> <num components>
 
-<filename> is the name of the file in which the data is stored. <num components> is the number of principal components desired for the analysis.  
+\<filename\> is the name of the file in which the data is stored. \<num components\> is the number of principal components desired for the analysis.  
 The data file should be in the same directory as the PCA.class file, or else the <filename> parameter should navigate to the true location of the file. All numbers in the file should be tab-delimited. The first line should be two ints: the first is the number R of rows in the file and the second is the number C of columns. After that, there should be R rows of C numbers.  
 For instance, if 50 data points with 8 dimensions each were stored in a file called data.txt, the file would look like:  
 
