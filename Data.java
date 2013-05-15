@@ -17,21 +17,55 @@ class Data {
 	/**
 	 * Test code. Constructs an arbitrary data table of 5 data points with 3 variables, normalizes
 	 * it, and computes the covariance matrix and its eigenvalues and orthonormal eigenvectors.
+	 * Then determines the two principal components.
 	 */
 	public static void main(String[] args) {
 		double[][] data = {{4, 4.2, 3.9, 4.3, 4.1}, {2, 2.1, 2, 2.1, 2.2}, 
 				{0.6, 0.59, 0.58, 0.62, 0.63}};
-		Data d = new Data(data);
-		d.normalize();
-		double[][] cov = d.covarianceMatrix();
+		Data dat = new Data(data);
+		dat.normalize();
+		double[][] cov = dat.covarianceMatrix();
 		System.out.println("Covariance matrix:");
 		Matrix.print(cov);
-		EigenSet s = d.getCovarianceEigenSet();
-		double[][] e = {s.values};
+		EigenSet eigen = dat.getCovarianceEigenSet();
+		double[][] vals = {eigen.values};
 		System.out.println("Eigenvalues:");
-		Matrix.print(e);
+		Matrix.print(vals);
 		System.out.println("Corresponding eigenvectors:");
-		Matrix.print(s.vectors);
+		Matrix.print(eigen.vectors);
+		System.out.println("Two principal components:");
+		Matrix.print(dat.buildPrincipalComponents(2, eigen));
+	}
+	
+	/**
+	 * Returns a list containing the principal components of this data set with the number of
+	 * loadings specified.
+	 * @param numComponents	the number of principal components desired
+	 * @param eigen			EigenSet containing the eigenvalues and eigenvectors
+	 * @return				the numComponents most significant eigenvectors
+	 */
+	double[][] buildPrincipalComponents(int numComponents, EigenSet eigen) {
+		double[] vals = eigen.values;
+		if(numComponents > vals.length) {
+			throw new RuntimeException("Cannot produce more principal components than those provided.");
+		}
+		boolean[] chosen = new boolean[vals.length];
+		double[][] vecs = eigen.vectors;
+		double[][] PC = new double[numComponents][];
+		for(int i = 0; i < PC.length; i++) {
+			int max = 0;
+			while(chosen[max]) {
+				max++;
+			}
+			for(int j = 0; j < vals.length; j++) {
+				if(Math.abs(vals[j]) > Math.abs(vals[max]) && !chosen[j]) {
+					max = j;
+				}
+			}
+			chosen[max] = true;
+			PC[i] = vecs[max];
+		}
+		return PC;
 	}
 	
 	/**
