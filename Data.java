@@ -12,12 +12,7 @@ class Data {
 	 * @param vals	data for new Data object; dimensions as columns, data points as rows.
 	 */
 	Data(double[][] vals) {
-		matrix = new double[vals.length][vals[0].length];
-		for(int i = 0; i < vals.length; i++) {
-			for(int j = 0; j < vals[0].length; j++) {
-				matrix[i][j] = vals[i][j];
-			}
-		}
+		matrix = Matrix.copy(vals);
 	}
 	
 	/**
@@ -31,7 +26,7 @@ class Data {
 		System.out.println("Raw data:");
 		Matrix.print(data);
 		Data dat = new Data(data);
-		dat.normalize();
+		dat.center();
 		double[][] cov = dat.covarianceMatrix();
 		System.out.println("Covariance matrix:");
 		Matrix.print(cov);
@@ -56,12 +51,53 @@ class Data {
 	 */
 	static double[][] principalComponentAnalysis(double[][] input, int numComponents) {
 		Data data = new Data(input);
-		data.normalize();
+		data.center();
 		EigenSet eigen = data.getCovarianceEigenSet();
 		double[][] featureVector = data.buildPrincipalComponents(numComponents, eigen);
 		double[][] PC = Matrix.transpose(featureVector);
 		double[][] inputTranspose = Matrix.transpose(input);
 		return Matrix.transpose(Matrix.multiply(PC, inputTranspose));
+	}
+	
+	/**
+	 * Implementation of the non-linear iterative partial least squares algorithm on the data
+	 * matrix for this Data object. The number of PCs returned is specified by the user.
+	 * @param numComponents	number of principal components desired
+	 * @return				a double[][][] where the ith double[][] contains ti and pi, the scores
+	 * 						and loadings, respectively, of the ith principal component.
+	 */
+	double[][][] NIPALSAlg(int numComponents) {
+		final double THRESHOLD = 0.00001;
+		double[][][] out = new double[numComponents][][];
+		double[][] E = Matrix.copy(matrix);
+		for(int i = 0; i < out.length; i++) {
+			double eigenOld = 0;
+			double eigenNew = 0;
+			double[] p = new double[matrix[0].length];
+			double[] t = new double[matrix[0].length];
+			double[][] tMatrix = {t};
+			double[][] pMatrix = {p};
+			for(int j = 0; j < t.length; j++) {
+				t[j] = matrix[i][j];
+			}
+			do {
+				eigenOld = eigenNew;
+				double tMult = 1/Matrix.dot(t, t);
+				tMatrix[0] = t;
+				p = Matrix.scale(Matrix.multiply(Matrix.transpose(E), tMatrix), tMult)[0];
+				p = Matrix.normalize(p);
+				double pMult = 1/Matrix.dot(p, p);
+				pMatrix[0] = p;
+				t = Matrix.scale(Matrix.multiply(E, pMatrix), pMult)[0];
+				eigenNew = Matrix.dot(t, t);
+			} while(Math.abs(eigenOld - eigenNew) > THRESHOLD);
+			tMatrix[0] = t;
+			pMatrix[0] = p;
+			double[][] PC = {t, p};
+			E = Matrix.subtract(E, Matrix.multiply(tMatrix, Matrix.transpose(pMatrix)));
+			out[i] = PC;
+		}
+		return out;
 	}
 	
 	/**
@@ -164,17 +200,26 @@ class Data {
 		return sum/divisor;
 	}
 	
+	/**
+	 * Centers each column of the data matrix at its mean.
+	 */
+	void center() {
+		matrix = normalize(matrix);
+	}
+	
 	
 	/**
-	 * Normalizes the data matrix so that each column is centered at 0.
+	 * Normalizes the input matrix so that each column is centered at 0.
 	 */
-	void normalize() {
-		for(int i = 0; i < matrix.length; i++) {
-			double mean = mean(matrix[i]);
-			for(int j = 0; j < matrix[i].length; j++) {
-				matrix[i][j] -= mean;
+	double[][] normalize(double[][] input) {
+		double[][] out = new double[input.length][input[0].length];
+		for(int i = 0; i < input.length; i++) {
+			double mean = mean(input[i]);
+			for(int j = 0; j < input[i].length; j++) {
+				out[i][j] = input[i][j] - mean;
 			}
 		}
+		return out;
 	}
 	
 	/**

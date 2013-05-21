@@ -191,6 +191,22 @@ class Matrix {
 	}
 	
 	/**
+	 * Returns a version of mat scaled by a constant.
+	 * @param mat	input matrix
+	 * @param coeff	constant by which to scale
+	 * @return		mat scaled by coeff
+	 */
+	static double[][] scale(double[][] mat, double coeff) {
+		double[][] out = new double[mat.length][mat[0].length];
+		for(int i = 0; i < out.length; i++) {
+			for(int j = 0; j < out[0].length; j++) {
+				out[i][j] = mat[i][j] * coeff;
+			}
+		}
+		return out;
+	}
+	
+	/**
 	 * Takes the dot product of two vectors, {a[0]b[0], ..., a[n]b[n]}.
 	 * @param a	double[] of values
 	 * @param b	double[] of values
@@ -205,6 +221,20 @@ class Matrix {
 			sum += a[i] * b[i];
 		}
 		return sum;
+	}
+	
+	/**
+	 * Returns a copy of the input matrix.
+	 * @param input	double[][] to be copied
+	 */
+	static double[][] copy(double[][] input) {
+		double[][] copy = new double[input.length][input[0].length];
+		for(int i = 0; i < copy.length; i++) {
+			for(int j = 0; j < copy[i].length; j++) {
+				copy[i][j] = input[i][j];
+			}
+		}
+		return copy;
 	}
 	
 	/**
