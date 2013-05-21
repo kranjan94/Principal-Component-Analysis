@@ -32,9 +32,16 @@ public class PCA {
 			System.err.println("Malformed data file.");
 		}
 		int numComps = Integer.parseInt(args[1]);
-		double[][] results = Data.principalComponentAnalysis(data, numComps);
-		System.out.println(numComps + " principal components:");
-		Matrix.print(results);
+		
+//		Uses previous method
+//		double[][] results = Data.principalComponentAnalysis(data, numComps);
+//		System.out.println(numComps + " principal components:");
+//		Matrix.print(results);
+		
+		double[][] scores = Data.PCANIPALS(data, numComps);
+		System.out.println("Scores:");
+		Matrix.print(scores);
+		saveResults(scores, args[0]);
 	}
 	
 	/**
@@ -54,15 +61,54 @@ public class PCA {
 			System.err.println("File " + filename + " not found.");
 		}
 		String firstLine = in.readLine();
-		String[] dims = firstLine.split("\t"); // <# points> <#dimensions>
+		String[] dims = firstLine.split(","); // <# points> <#dimensions>
 		double[][] data = new double[Integer.parseInt(dims[1])][Integer.parseInt(dims[0])];
 		for(int j = 0; j < data[0].length; j++) {
 			String text = in.readLine();
-			String[] vals = text.split("\t");
+			String[] vals = text.split(",");
 			for(int i = 0; i < data.length; i++)  {
 				data[i][j] = Double.parseDouble(vals[i]);
 			}
 		}
+		try {
+			in.close();
+		} catch(IOException e) {
+			System.err.println(e);
+		}
 		return data;
+	}
+	
+	/**
+	 * Saves the results of PCA to a file. The filename has "_processed" appended to it before
+	 * the extension.
+	 * @param results	double[][] of PCA results
+	 * @param filename	original filename of data
+	 */
+	private static void saveResults(double[][] results, String filename) {
+		String[] filenameComps = filename.split("\\.");
+		String newFilename = filenameComps[0] + "_processed";
+		if(filenameComps.length == 2) {
+			newFilename += "." + filenameComps[1]; //Add filename extension
+		}
+		BufferedWriter out = null;
+		try {
+			out = new BufferedWriter(new FileWriter(new File(newFilename)));
+		} catch(IOException e) {
+			System.err.println("Error trying to write new file.");
+		}
+		for(int i = 0; i < results[0].length; i++) {
+			for(int j = 0; j < results.length; j++) {
+				try {
+					out.write("" + results[j][i]);
+					if(j != results.length - 1) {
+						out.write(",");
+					} else {
+						out.write("\n");
+					}
+				} catch(IOException e) {
+					System.err.println("Error trying to write new file.");
+				}
+			}
+		}
 	}
 }
