@@ -37,11 +37,14 @@ public class PCA {
 //		double[][] results = Data.principalComponentAnalysis(data, numComps);
 //		System.out.println(numComps + " principal components:");
 //		Matrix.print(results);
+//		saveResults(results, args[0]);
 		
 		double[][] scores = Data.PCANIPALS(data, numComps);
-		System.out.println("Scores:");
-		Matrix.print(scores);
+//		System.out.println("Scores:");
+//		Matrix.print(scores);
 		saveResults(scores, args[0]);
+		
+		System.out.println(Matrix.numMults + " multiplications performed.");
 	}
 	
 	/**
