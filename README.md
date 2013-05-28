@@ -26,4 +26,4 @@ and the command to perform PCA with 4 principal components would be:
 
     java PCA data.txt 4
 
-The PCA transformed data is then printed to the console.
+Output format will be changing as development continues.
