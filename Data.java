@@ -164,29 +164,7 @@ class Data {
 	 */
 	EigenSet getCovarianceEigenSet() {
 		double[][] data = covarianceMatrix();
-		double[][] Q = new double[data.length][data.length];
-		for(int i = 0; i < Q.length; i++) {
-			Q[i][i] = 1; //Q starts as an identity matrix
-		}
-		boolean done = false;
-		while(!done) {
-			double[][][] fact = Matrix.QRFactorize(data);
-			double[][] newMat = Matrix.multiply(fact[1], fact[0]); //[A_k+1] := [R_k][Q_k]
-			Q = Matrix.multiply(fact[0], Q);
-			//Stop the loop if no eigenvalue changes by more than 1/100000
-			for(int i = 0; i < data.length; i++) {
-				if(Math.abs(newMat[i][i] - data[i][i]) > 0.00001) {
-					data = newMat;
-					break;
-				} else if(i == data.length - 1) { //End of data table
-					done = true;
-				}
-			}
-		}
-		EigenSet ret = new EigenSet();
-		ret.values = Matrix.extractDiagonalEntries(data); //Eigenvalues lie on diagonal
-		ret.vectors = Q; //Columns of Q converge to the eigenvectors
-		return ret;
+		return Matrix.eigenDecomposition(data);
 	}
 	
 	/**
@@ -258,14 +236,4 @@ class Data {
 		}
 		return out;
 	}
-}
-
-/**
- * Data holder class that contains a set of eigenvalues and their corresponding eigenvectors.
- * @author	Kushal Ranjan
- * @version 051413
- */
-class EigenSet {
-	double[] values;
-	double[][] vectors;
 }

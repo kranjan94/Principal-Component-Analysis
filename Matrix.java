@@ -5,7 +5,91 @@
  */
 class Matrix {
 	
+	static int numMults = 0; //Keeps track of the number of multiplications performed
 	
+	/**
+	 * Test code for SVD. Uses example from MIT video: http://www.youtube.com/watch?v=cOUTpqlX-Xs
+	 */
+	public static void main(String[] args) {
+		System.out.println("Original matrix:");
+		double[][] test = {{5, -1}, {5, 7}}; //C
+		Matrix.print(test);
+		double[][][] SVD = Matrix.singularValueDecomposition(test);
+		double[][] U = SVD[0];
+		double[][] S = SVD[1];
+		double[][] V = SVD[2];
+		System.out.println("U-matrix:");
+		Matrix.print(U);
+		System.out.println("Sigma-matrix:");
+		Matrix.print(S);
+		System.out.println("V-matrix:");
+		Matrix.print(V);
+		System.out.println("Decomposition product (C = US(V^T)):");
+		Matrix.print(Matrix.multiply(U, Matrix.multiply(S, Matrix.transpose(V)))); //Should be C
+	}
+	
+	
+	/**
+	 * Computes the singular value decomposition (SVD) of the input matrix.
+	 * @param input		the input matrix
+	 * @return			the SVD of input, {U,S,V}, such that input = US(V^T). U and S are
+	 * 					orthogonal matrix, and the non-zero entries of the diagonal matrix S are
+	 * 					the 
+	 */
+	static double[][][] singularValueDecomposition(double[][] input) {
+		double[][] C = Matrix.copy(input);
+		double[][] CTC = multiply(transpose(C), C); //(C^T)C = V(S^T)S(V^T)
+		EigenSet eigenC = eigenDecomposition(CTC);
+		double[][] S = new double[C.length][C.length]; //Diagonal matrix
+		for(int i = 0; i < S.length; i++) {
+			S[i][i] = Math.sqrt(eigenC.values[i]); //Squareroots of eigenvalues are entries of S
+		}
+		double[][] V = eigenC.vectors;
+		double[][] CV = multiply(C, V); //CV = US
+		double[][] invS = copy(S); //Inverse of S
+		for(int i = 0; i < invS.length; i++) {
+			invS[i][i] = 1.0/S[i][i];
+		}
+		double[][] U = multiply(CV, invS); //U = CV(S^-1)
+		return new double[][][] {U, S, V};
+	}
+	
+	/**
+	 * Determines the eigenvalues and eigenvectors of a matrix by using the QR algorithm. Repeats
+	 * until no eigenvalue changes by more than 1/100000.
+	 * @param	input	input matrix; must be square
+	 * @return			an EigenSet containing the eigenvalues and corresponding eigenvectors of
+	 * 					input
+	 */
+	static EigenSet eigenDecomposition(double[][] input) {
+		if(input.length != input[0].length) {
+			throw new MatrixException("Eigendecomposition not defined on nonsquare matrices.");
+		}
+		double[][] copy = copy(input);
+		double[][] Q = new double[copy.length][copy.length];
+		for(int i = 0; i < Q.length; i++) {
+			Q[i][i] = 1; //Q starts as an identity matrix
+		}
+		boolean done = false;
+		while(!done) {
+			double[][][] fact = Matrix.QRFactorize(copy);
+			double[][] newMat = Matrix.multiply(fact[1], fact[0]); //[A_k+1] := [R_k][Q_k]
+			Q = Matrix.multiply(fact[0], Q);
+			//Stop the loop if no eigenvalue changes by more than 1/100000
+			for(int i = 0; i < copy.length; i++) {
+				if(Math.abs(newMat[i][i] - copy[i][i]) > 0.00001) {
+					copy = newMat;
+					break;
+				} else if(i == copy.length - 1) { //End of copy table
+					done = true;
+				}
+			}
+		}
+		EigenSet ret = new EigenSet();
+		ret.values = Matrix.extractDiagonalEntries(copy); //Eigenvalues lie on diagonal
+		ret.vectors = Q; //Columns of Q converge to the eigenvectors
+		return ret;
+	}
 	
 	/**
 	 * Produces an array of the diagonal entries in the input matrix.
@@ -218,6 +302,7 @@ class Matrix {
 		}
 		double sum = 0;
 		for(int i = 0; i < a.length; i++) {
+			numMults++;
 			sum += a[i] * b[i];
 		}
 		return sum;
@@ -316,4 +401,14 @@ class MatrixException extends RuntimeException {
 	MatrixException(String string) {
 		super(string);
 	}
+}
+
+/**
+ * Data holder class that contains a set of eigenvalues and their corresponding eigenvectors.
+ * @author	Kushal Ranjan
+ * @version 051413
+ */
+class EigenSet {
+	double[] values;
+	double[][] vectors;
 }
